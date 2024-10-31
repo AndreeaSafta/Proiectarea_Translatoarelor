@@ -1,0 +1,102 @@
+/*
+   Simple +/-/* expression language; 
+   parser evaluates constant expressions on the fly
+*/
+
+package cup.example;
+
+import java_cup.runtime.*;
+import cup.example.Lexer;
+import java.io.IOException;
+import java.io.File;
+import java.io.FileInputStream;
+
+parser code {:
+  protected Lexer lexer;
+:}
+
+/* define how to connect to the scanner! */
+init with {:
+  ComplexSymbolFactory f = new ComplexSymbolFactory();
+  symbolFactory = f;
+  File file = new File("input.txt");
+  FileInputStream fis = null;
+  try {
+    fis = new FileInputStream(file);
+  } catch (IOException e) {
+    e.printStackTrace();
+  } 
+  lexer = new Lexer(f,fis);
+:};
+scan with {: return lexer.next_token(); :};
+
+/* Terminals (tokens returned by the scanner). */
+terminal            SEMI, PLUS, MINUS, UMINUS, TIMES, LPAREN, RPAREN;
+terminal Integer    NUMBER;        // our scanner provides numbers as integers
+
+terminal Integer    IVAL; 
+terminal Float RVAL;
+terminal Boolean BVAL; 
+terminal BGSOUND, BASE, ISINDEX, LINK, META, NEXTID;
+terminal styleOpen, styleClose, plainText, scriptOpen, scriptClose, addressOpen, addressClose;
+terminal EMBED, IFRAME, IMG, SPACER, WBR, PARAM;
+terminal appletOpen, appletClose, abbrOpen, abbrClose, acronymOpen, acronymClose, citeOpen, citeClose, codeOpen, codeClose;
+terminal dfnOpen, dfnClose, emOpen, emClose, kbdOpen, kbdClose, qOpen, qClose, strongOpen, strongClose, varOpen, varClose, ilayerOpen,ilayerClose;
+terminal noembedOpen, noembedClose, noscriptOpen, noscriptClose, objectOpen, objectClose, bdoOpen, bdoClose, blinkOpen, blinkClose;
+terminal sOpen, sClose, spanOpen, spanClose, strikeOpen, strikeClose, ttOpen, ttClose, marqueeOpen, marqueeClose, basefontOpen,basefontClose, blockquoteOpen, blockquoteClose, dirOpen, dirClose;
+terminal endTag, bodyOpen, bodyClose, frameOpen, framesetOpen, framesetClose;
+terminal noframesOpen, noframesClose, formOpen, formClose;
+terminal input, selectOpen, selectClose, optionOpen, optionClose;
+terminal tableOpen, tableClose, trOpen, trClose, tdOpen, tdClose;
+terminal thOpen, thClose, thread, tbody, img, aOpen, aClose;
+terminal ulOpen, ulClose, liOpen, liClose, olOpen, olClose;
+terminal pOpen, pClose, iOpen, iClose, uOpen, uClose;
+terminal colon, comma, semicolon, assign, nobrOpen, bigClose, bigOpen, nobrClose;
+terminal bOpen, bClose, smallOpen, smallClose, supOpen, supClose;
+terminal subOpen, subClose, centerOpen, centerClose, fontOpen, fontClose;
+terminal h1Open, h1Close, h2Open, h2Close, h3Open, h3Close, thead;
+terminal h4Open, h4Close, h5Open, h5Close, h6Open, h6Close, hr, br, divisionOpen, divisionClose;
+terminal htmlOpen, htmlClose, headOpen, headClose, titleOpen, titleClose;
+terminal dlOpen, dlClose, dtOpen, dtClose, ddOpen, ddClose, KEYGEN, fieldsetOpen, fieldsetClose , legendOpen, legendClose ;
+terminal LABEL, textareaOpen, textareaClose, optgroupOpen, optgroupClose, listingOpen, listingClose, menuOpen, menuClose ;
+terminal multicolOpen, multicolClose, preOpen, preClose, captionOpen, captionClose, COLGROUP, COL, tfoot, xmpOpen, xmpClose ;
+terminal delOpen, delClose, insOpen, insClose, layerOpen, layerClose, mapOpen, mapClose, AREA ; 
+terminal ID, comment, whitespace;
+
+
+/* Non terminals */
+non terminal            expr_list;
+non terminal Integer    expr;      // used to store evaluated subexpressions
+
+non terminal html_document, html_tag, html_content, head_tag, head_content, style_tag, title_tag, script_tag;
+non terminal address_content, body_content, address_tag, body_tag, frameset_tag, p_tag, text, text_content, block, del_tag, heading;
+non terminal ins_tag, layer_tag, map_tag, marquee_tag, a_tag, applet_tag, content_style, ilayer_tag, noembed_tag, noscript_tag, object_tag;
+non terminal physical_style, a_content, h1_tag, h2_tag, h3_tag, h4_tag, h5_tag, h6_tag, applet_content, abbr_tag, cite_tag, em_tag, dfn_tag;
+non terminal acronym_tag, code_tag, kbd_tag, q_tag, strong_tag, var_tag, small_tag, s_tag, i_tag, bdo_tag, big_tag, b_tag, object_content;
+non terminal blink_tag, font_tag, span_tag, strike_tag, tt_tag, sub_tag, sup_tag, u_tag, style_text, block_content, map_content, frameset_content;
+non terminal xmp_tag, ul_tag, noframes_tag, li_tag, flow, flow_content, basefont_tag, center_tag, div_tag, dir_tag, blockquote_tag, dl_tag;
+non terminal form_tag, table_tag, menu_tag, ol_tag, listing_tag, pre_tag, multicol_tag, nobr_tag, caption_tag, pre_content, tr_tag;
+non terminal dd_tag, dt_tag, dl_content, form_content, legend_tag, label_content, label_tag, textarea_tag, table_content, colgroup_tag;
+non terminal table_cell, th_tag, td_tag, literal_text, optgroup_tag, option_tag, colgroup_content, select_content, select_tag, fieldset_tag;
+
+
+/* Precedences */
+precedence left PLUS, MINUS;
+precedence left TIMES;
+precedence left UMINUS;
+
+/* The grammar rules */
+expr_list ::= expr_list expr:e SEMI         {: System.out.println(e); :}
+            | expr:e SEMI                   {: System.out.println(e); :}
+            ;
+            
+expr      ::= expr:e1 PLUS  expr:e2         {: RESULT = e1+e2;        :}
+             | expr:e1 MINUS expr:e2        {: RESULT = e1-e2;        :}
+             | expr:e1 TIMES expr:e2        {: RESULT = e1*e2;        :}
+             | MINUS expr:e                 {: RESULT = -e;           :}
+             %prec UMINUS
+             | LPAREN expr:e RPAREN	         {: RESULT = e;           :}
+             | NUMBER:n	                     {: RESULT = n;           :}
+             ;
+             
+             

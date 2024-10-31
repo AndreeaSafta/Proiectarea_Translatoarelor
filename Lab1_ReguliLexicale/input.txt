@@ -1,0 +1,12 @@
+<HTML>
+<head>
+<title></title>
+</head>
+<body>
+<h2> pagina </h2>
+<h3> carte </h3>
+<div> <p>  titlu  </p> </div>
+<p>, ; : 
+<div> </div>
+</body>
+</HTML>
